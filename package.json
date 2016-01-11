@@ -6,6 +6,10 @@
   "version": "0.1.0",
   "scripts": {
     "start": "babel-node ./server.js",
+
+    "debug": "babel-node debug ./server.js",
+    "//": "\"debug\": \"babel-node-debug ./server.js\", // waiting for babel-node-debug to get babel 6 compatible",
+
     "update-schema": "babel-node ./scripts/updateSchema.js"
   },
   "dependencies": {
@@ -21,9 +25,13 @@
     "express-graphql": "0.4.5",
     "graphql": "0.4.14",
     "graphql-relay": "0.3.6",
+    "pg": "^4.4.3",
     "react": "0.14.3",
     "react-dom": "0.14.3",
     "react-relay": "0.6.1",
+    "sequelize": "^3.17.1",
+    "sequelize-cli": "^2.2.1",
+    "sequelize-relay": "0.0.9",
     "webpack": "1.12.9",
     "webpack-dev-server": "1.14.0"
   }

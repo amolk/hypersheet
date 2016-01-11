@@ -27,17 +27,19 @@ import {
   globalIdField,
   mutationWithClientMutationId,
   nodeDefinitions,
+  connectionFromPromisedArray,
 } from 'graphql-relay';
 
 import {
   // Import methods that your schema can use to interact with your database
   User,
-  Widget,
+  Sheet,
   getUser,
   getViewer,
-  getWidget,
-  getWidgets,
 } from './database';
+
+import _ from 'lodash';
+import { resolveArrayData, resolveModelsByClass } from 'sequelize-relay';
 
 /**
  * We get the node interface and field from the Relay library.
@@ -47,63 +49,67 @@ import {
  */
 var {nodeInterface, nodeField} = nodeDefinitions(
   (globalId) => {
+    console.log(`globalId = ${globalId}`);
     var {type, id} = fromGlobalId(globalId);
+    console.log("type = " + type);
+    console.log("id = " + id);
     if (type === 'User') {
       return getUser(id);
-    } else if (type === 'Widget') {
-      return getWidget(id);
+    } else if (type === 'Sheet') {
+      return Sheet.findById(id);
     } else {
       return null;
     }
   },
   (obj) => {
+    console.log("obj = " + obj);
     if (obj instanceof User) {
       return userType;
-    } else if (obj instanceof Widget)  {
-      return widgetType;
+    } else if (obj instanceof Sheet)  {
+      return sheetType;
     } else {
       return null;
     }
   }
 );
 
-/**
- * Define your own types here
- */
+const sheetType = new GraphQLObjectType({
+  name: Sheet.name,
+  fields: {
+    id: globalIdField(Sheet.name),
+    name: {
+      type: GraphQLString,
+      description: 'The name of the sheet',
+      resolve: (sheet) => sheet.name
+    }
+  },
+  interfaces: [nodeInterface]
+});
 
+
+var {connectionType: sheetConnection} =
+  connectionDefinitions({name: 'Sheet', nodeType: sheetType});
+
+// userType
 var userType = new GraphQLObjectType({
   name: 'User',
   description: 'A person who uses our app',
   fields: () => ({
     id: globalIdField('User'),
-    widgets: {
-      type: widgetConnection,
-      description: 'A person\'s collection of widgets',
+    sheets: {
+      type: sheetConnection,
+      description: 'A person\'s collection of sheets',
       args: connectionArgs,
-      resolve: (_, args) => connectionFromArray(getWidgets(), args),
+      resolve: (user, args) => {
+        return connectionFromPromisedArray(
+          resolveArrayData(Sheet.findAll()),
+          args
+        );
+      }
     },
   }),
   interfaces: [nodeInterface],
 });
-
-var widgetType = new GraphQLObjectType({
-  name: 'Widget',
-  description: 'A shiny widget',
-  fields: () => ({
-    id: globalIdField('Widget'),
-    name: {
-      type: GraphQLString,
-      description: 'The name of the widget',
-    },
-  }),
-  interfaces: [nodeInterface],
-});
-
-/**
- * Define your own connection types here
- */
-var {connectionType: widgetConnection} =
-  connectionDefinitions({name: 'Widget', nodeType: widgetType});
 
 /**
  * This is the type that will be the root of our query,
@@ -118,6 +124,15 @@ var queryType = new GraphQLObjectType({
       type: userType,
       resolve: () => getViewer(),
     },
+
+    sheets: {
+      type: sheetConnection,
+      description: 'A person\'s collection of sheets',
+      args: connectionArgs,
+      resolve: (root, args) =>
+        connectionFromPromisedArray(resolveModelsByClass(Sheet), args)
+    },
+
   }),
 });
 
