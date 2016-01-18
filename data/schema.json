@@ -40,7 +40,7 @@
               "deprecationReason": null
             },
             {
-              "name": "viewer",
+              "name": "currentUser",
               "description": null,
               "args": [],
               "type": {

@@ -31,15 +31,20 @@ import {
 } from 'graphql-relay';
 
 import {
+  resolveArrayData
+} from 'sequelize-relay';
+
+import {
   // Import methods that your schema can use to interact with your database
   User,
   Sheet,
+  SheetRow,
+  SheetRowDatum,
   getUser,
   getViewer,
 } from './database';
 
 import _ from 'lodash';
-import { resolveArrayData, resolveModelsByClass } from 'sequelize-relay';
 
 /**
  * We get the node interface and field from the Relay library.
@@ -57,6 +62,8 @@ var {nodeInterface, nodeField} = nodeDefinitions(
       return getUser(id);
     } else if (type === 'Sheet') {
       return Sheet.findById(id);
+    } else if (type === 'SheetRow') {
+      return SheetRow.findById(id);
     } else {
       return null;
     }
@@ -67,25 +74,85 @@ var {nodeInterface, nodeField} = nodeDefinitions(
       return userType;
     } else if (obj instanceof Sheet)  {
       return sheetType;
+    } else if (obj instanceof SheetRow)  {
+      return sheetRowType;
     } else {
       return null;
     }
   }
 );
 
+const sheetRowDatumType = new GraphQLObjectType({
+  name: 'SheetRowDatum',
+  fields: {
+    key: {
+      type: GraphQLString,
+      description: 'The key of the datum',
+      resolve: (datum) => datum.key
+    },
+    value: {
+      type: GraphQLString,
+      description: 'The value of the datum',
+      resolve: (datum) => datum.value
+    },
+  },
+});
+
+const sheetRowType = new GraphQLObjectType({
+  name: 'SheetRow',
+  fields: {
+    id: globalIdField(SheetRow.name),
+    data: {
+      type: new GraphQLList(sheetRowDatumType),
+      resolve: (sheetRow, args) => {
+        return SheetRow.getData(sheetRow)
+      },
+    },
+  },
+  interfaces: [nodeInterface]
+});
+
+var {connectionType: sheetRowsConnection} =
+  connectionDefinitions({name: 'SheetRow', nodeType: sheetRowType});
+
+var sheetRowConnectionArgs = _.clone(connectionArgs);
+sheetRowConnectionArgs.columns = {
+  type: new GraphQLList(GraphQLString),
+  description: 'The columns to return'
+};
+
 const sheetType = new GraphQLObjectType({
-  name: Sheet.name,
+  name: 'Sheet',
   fields: {
     id: globalIdField(Sheet.name),
     name: {
       type: GraphQLString,
       description: 'The name of the sheet',
       resolve: (sheet) => sheet.name
+    },
+    // columns: {
+    //   tye: new GraphQLList(sheetColumnType),
+    //   description: 'A sheet\'s collection of columns',
+    //   resolve: (sheet) => sheet.getColumns()
+    // },
+    rows: {
+      type: sheetRowsConnection,
+      description: 'A sheet\'s rows',
+      args: sheetRowConnectionArgs,
+      resolve: (sheetInfo, args) => {
+        return new Promise(function(resolve, reject) {
+          Sheet.findById(sheetInfo.id).then(function(sheet) {
+            resolve(connectionFromPromisedArray(
+              sheet.rows(args),
+              args
+            ));
+          });
+        });
+      }
     }
   },
   interfaces: [nodeInterface]
 });
-
 
 var {connectionType: sheetConnection} =
   connectionDefinitions({name: 'Sheet', nodeType: sheetType});
@@ -120,7 +187,7 @@ var queryType = new GraphQLObjectType({
   fields: () => ({
     node: nodeField,
     // Add your own root fields here
-    viewer: {
+    currentUser: {
       type: userType,
       resolve: () => getViewer(),
     },

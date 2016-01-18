@@ -11,7 +11,7 @@ module.exports = {
       name: {
         type: Sequelize.STRING
       },
-      table_name: {
+      tableName: {
         type: Sequelize.STRING
       },
       createdAt: {

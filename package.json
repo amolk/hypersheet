@@ -6,10 +6,8 @@
   "version": "0.1.0",
   "scripts": {
     "start": "babel-node ./server.js",
-
     "debug": "babel-node debug ./server.js",
     "//": "\"debug\": \"babel-node-debug ./server.js\", // waiting for babel-node-debug to get babel 6 compatible",
-
     "update-schema": "babel-node ./scripts/updateSchema.js"
   },
   "dependencies": {
@@ -23,12 +21,15 @@
     "classnames": "2.2.1",
     "express": "4.13.3",
     "express-graphql": "0.4.5",
+    "fixed-data-table": "^0.6.0",
     "graphql": "0.4.14",
     "graphql-relay": "0.3.6",
+    "material-ui": "^0.14.2",
     "pg": "^4.4.3",
-    "react": "0.14.3",
-    "react-dom": "0.14.3",
+    "react": "^0.14.6",
+    "react-dom": "^0.14.6",
     "react-relay": "0.6.1",
+    "react-tap-event-plugin": "^0.2.1",
     "sequelize": "^3.17.1",
     "sequelize-cli": "^2.2.1",
     "sequelize-relay": "0.0.9",

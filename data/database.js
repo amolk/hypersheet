@@ -9,6 +9,32 @@
 
 // Model types
 class User extends Object {}
+class SheetRow extends Object {
+  findById(id) {
+    console.log("SheetRow.findById " + id);
+    return {
+      id: 100,
+      data: {
+        name: 'Aria',
+        age: 4
+      }
+    };
+  }
+};
+
+SheetRow.getData = function(info) {
+  var arr = [];
+  for(var key in info) {
+    var datum = new SheetRowDatum();
+    datum.key = key;
+    datum.value = info[key];
+    arr.push(datum);
+  }
+
+  return arr;
+};
+
+class SheetRowDatum extends Object {}
 
 // Mock data
 var viewer = new User();
@@ -22,4 +48,6 @@ module.exports = {
   getViewer: () => viewer,
   User,
   Sheet: db.Sheet,
+  SheetRow,
+  SheetRowDatum,
 };
