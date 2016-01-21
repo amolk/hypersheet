@@ -121,6 +121,16 @@ sheetRowConnectionArgs.columns = {
   description: 'The columns to return'
 };
 
+const SheetColumnInfoType = new GraphQLObjectType({
+  name: 'SheetColumnInfo',
+  fields: {
+    name: {
+      type: GraphQLString,
+      description: 'The name of the column'
+    }
+  }
+});
+
 const sheetType = new GraphQLObjectType({
   name: 'Sheet',
   fields: {
@@ -139,15 +149,21 @@ const sheetType = new GraphQLObjectType({
       type: sheetRowsConnection,
       description: 'A sheet\'s rows',
       args: sheetRowConnectionArgs,
-      resolve: (sheetInfo, args) => {
-        return new Promise(function(resolve, reject) {
-          Sheet.findById(sheetInfo.id).then(function(sheet) {
-            resolve(connectionFromPromisedArray(
-              sheet.rows(args),
-              args
-            ));
-          });
-        });
+      resolve: async (sheetInfo, args) => {
+        var sheet = await Sheet.findById(sheetInfo.id);
+        return connectionFromPromisedArray(
+          sheet.rows(args),
+          args
+        )
+      }
+    },
+
+    columnInfos: {
+      type: new GraphQLList(SheetColumnInfoType),
+      description: 'Column infos',
+      resolve: async (sheetInfo) => {
+        var sheet = await Sheet.findById(sheetInfo.id);
+        return sheet.columnInfos()
       }
     }
   },

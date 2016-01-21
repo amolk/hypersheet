@@ -13,6 +13,9 @@ class Sheet extends React.Component {
 
         <table>
           <tbody>
+            <tr>
+              {sheet.columnInfos.map(columnInfo => <th key={columnInfo.name}>{columnInfo.name}</th>)}
+            </tr>
             {sheet.rows.edges.map(row => <SheetRow key={row.node.id} row={row.node} column='name'></SheetRow>)}
           </tbody>
         </table>
@@ -31,6 +34,9 @@ export default Relay.createContainer(Sheet, {
       fragment on Sheet {
         id,
         name,
+        columnInfos {
+          name
+        }
         rows(first: 10, columns: $columns) {
           edges {
             node {
