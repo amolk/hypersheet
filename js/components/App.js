@@ -2,7 +2,6 @@ import React from 'react';
 import Relay from 'react-relay';
 import AppBar from 'material-ui/lib/app-bar';
 import Paper from 'material-ui/lib/paper';
-import {Table, Column, Cell} from 'fixed-data-table';
 
 import Sheet from './Sheet';
 
