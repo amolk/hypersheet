@@ -16,7 +16,7 @@ module.exports = function(sequelize, DataTypes) {
       },
       rows: function(args) {
         var columns = '*';
-        if (args.columns.length > 0) {
+        if (args != null && args.columns != null && args.columns.length > 0) {
           columns = args.columns.join(',');
         }
 
